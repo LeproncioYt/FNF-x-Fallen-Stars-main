@@ -55,7 +55,14 @@ import FunkinLua;
 import DialogueBoxPsych;
 
 #if sys
+import Sys;
 import sys.FileSystem;
+import openfl.Assets;
+import sys.io.File;
+#end
+
+#if mobileC
+import ui.Mobilecontrols;
 #end
 
 using StringTools;
@@ -271,6 +278,12 @@ class PlayState extends MusicBeatState
 	var detailsText:String = "";
 	var detailsPausedText:String = "";
 	#end
+
+	#if mobileC
+	var mcontrols:Mobilecontrols; 
+	#end	
+
+	private var luaArray:Array<FunkinLua> = [];
 
 	//Achievement shit
 	var keysPressed:Array<Bool> = [];
@@ -1121,6 +1134,13 @@ class PlayState extends MusicBeatState
 		scoreTxt.visible = !ClientPrefs.hideHud;
 		add(scoreTxt);
 
+		creditTxt = new FlxText(876, 530, 348);        
+        creditTxt.text = 'PORTED BY\nM.A. JIGSAW AND SIROX';
+        creditTxt.setFormat(Paths.font("vcr.ttf"), 30, FlxColor.WHITE, RIGHT);
+        creditTxt.setBorderStyle(OUTLINE, FlxColor.BLACK, 3, 1);       
+        creditTxt.scrollFactor.set();
+        add(creditTxt);
+
 		botplayTxt = new FlxText(400, timeBarBG.y + 55, FlxG.width - 800, "BOTPLAY", 32);
 		botplayTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		botplayTxt.scrollFactor.set();
@@ -1144,6 +1164,29 @@ class PlayState extends MusicBeatState
 		timeBarBG.cameras = [camHUD];
 		timeTxt.cameras = [camHUD];
 		doof.cameras = [camHUD];
+
+		#if mobileC
+			mcontrols = new Mobilecontrols();
+			switch (mcontrols.mode)
+			{
+				case VIRTUALPAD_RIGHT | VIRTUALPAD_LEFT | VIRTUALPAD_CUSTOM:
+					controls.setVirtualPadNOTES(mcontrols._virtualPad, FULL, NONE);
+				case HITBOX:
+					controls.setHitBoxNOTES(mcontrols._hitbox);
+				default:
+			}
+			trackedinputsNOTES = controls.trackedinputsNOTES;
+			controls.trackedinputsNOTES = [];
+
+			var camcontrol = new FlxCamera();
+			FlxG.cameras.add(camcontrol);
+			camcontrol.bgColor.alpha = 0;
+			mcontrols.cameras = [camcontrol];
+
+			mcontrols.visible = false;
+
+			add(mcontrols);
+		#end		
 
 		// if (SONG.song == 'South')
 		// FlxG.camera.alpha = 0.7;
@@ -3242,7 +3285,9 @@ class PlayState extends MusicBeatState
 				return;
 			}
 		}
-		
+		#if mobileC
+		mcontrols.visible = false;
+		#end
 		timeBarBG.visible = false;
 		timeBar.visible = false;
 		timeTxt.visible = false;
